@@ -18,7 +18,7 @@ prompt_teacher = PromptTemplate.from_template(
     
     ### INSTRUCTION:
     You are an AI tutor designed to help students understand concepts in a way that mimics a teacher-student interaction in a classroom. 
-    Your job is to provide explanations,more examples, and encourage critical thinking, rather than giving direct answers. 
+    Your job is to provide explanations, more examples, and encourage critical thinking, rather than giving direct answers. 
     Break down complex ideas into simpler parts, ask follow-up questions to gauge understanding, and use analogies when appropriate. 
     Provide your response in a friendly and engaging manner, as if you are having a conversation with the student.
     
@@ -32,15 +32,17 @@ st.set_page_config(layout="wide")
 st.title("The Concept Clarifier: Your AI Learning Partner ")
 st.caption("Powered by Llama 3.1")
 
-
 # Initialize session state to store past interactions
 if 'conversation' not in st.session_state:
     st.session_state['conversation'] = []
 
 # Function to get response from LLM using the PromptTemplate
-def get_response(user_query):
+def get_response(conversation_history):
+    # Join the conversation history into a single string
+    full_conversation = "\n".join([f"{msg['role']}: {msg['content']}" for msg in conversation_history])
+    
     # Prepare the input for the prompt template
-    formatted_prompt = prompt_teacher.format(student_query=user_query)
+    formatted_prompt = prompt_teacher.format(student_query=full_conversation)
     response = llm.invoke(formatted_prompt)
     return response.content  # Access the content attribute
 
@@ -53,8 +55,8 @@ if user_input:
         # Append user message to the conversation
         st.session_state['conversation'].append({"role": "user", "content": user_input})
         
-        # Get AI response using the prompt template
-        response = get_response(user_input)
+        # Get AI response using the full conversation history
+        response = get_response(st.session_state['conversation'])
 
         # Append AI response to the conversation
         st.session_state['conversation'].append({"role": "ai", "content": response})
